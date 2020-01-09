@@ -282,10 +282,27 @@ type NodeDestroyResource struct {
 
 var (
 	_ GraphNodeEvalable = (*NodeDestroyResource)(nil)
+	// TransformReferences looks for indirect references as well, and relies
+	// on these two interfaces to connect them. This ensures the node is
+	// evaluated before the corresponding NodeModuleRemoved.
+	_ GraphNodeReferenceable = (*NodeDestroyResource)(nil)
+	_ GraphNodeSubPath       = (*NodeDestroyResource)(nil)
 )
 
 func (n *NodeDestroyResource) Name() string {
 	return n.NodeAbstractResource.ResourceAddr().String() + " (clean up state)"
+}
+
+// NodeDestroyResource still needs to be a GraphNodeReferenceable so that a
+// NodeModuleRemoved can reference it for cleanup.
+func (n *NodeDestroyResource) ReferenceableAddrs() []addrs.Referenceable {
+	return n.NodeAbstractResource.ReferenceableAddrs()
+}
+
+// NodeDestroyResource still needs to be a GraphNodeSubPath so that a
+// NodeModuleRemoved can reference it for cleanup.
+func (n *NodeDestroyResource) Path() addrs.ModuleInstance {
+	return n.NodeAbstractResource.Path()
 }
 
 // GraphNodeEvalable
